@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
 /**
  * Middleware to protect routes and handle authentication
@@ -10,8 +10,10 @@ import jwt from "jsonwebtoken";
  * 2. Allows access to /dashboard only if authenticated (valid JWT cookie)
  * 3. Allows access to /<secret-path> (login page) - path from PRIVATE_ENTRY_PATH env
  * 4. Blocks all other routes and redirects to /
+ * 
+ * Note: Middleware runs in Edge Runtime by default in Next.js
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const secretPath = process.env.PRIVATE_ENTRY_PATH;
   const jwtSecret = process.env.JWT_SECRET;
@@ -30,18 +32,29 @@ export function middleware(request: NextRequest) {
   if (pathname === "/dashboard") {
     const authToken = request.cookies.get("auth_token")?.value;
 
-    if (!authToken || !jwtSecret) {
-      // No token or no secret - redirect to home
+    if (!authToken) {
+      // No token - redirect to home
+      console.log("❌ No auth token found in cookies");
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    if (!jwtSecret || jwtSecret.trim() === "") {
+      // No secret - this is a server configuration error
+      console.error("❌ JWT_SECRET is missing or empty in middleware");
       return NextResponse.redirect(new URL("/", request.url));
     }
 
     try {
-      // Verify JWT token
-      jwt.verify(authToken, jwtSecret);
+      // Verify JWT token using jose (Edge runtime compatible)
+      const secret = new TextEncoder().encode(jwtSecret.trim());
+      await jwtVerify(authToken, secret, {
+        algorithms: ["HS256"],
+      });
       // Token is valid - allow access
       return NextResponse.next();
     } catch (error) {
       // Invalid token - redirect to home
+      console.log("❌ JWT verification failed:", error instanceof Error ? error.message : "Unknown error");
       return NextResponse.redirect(new URL("/", request.url));
     }
   }

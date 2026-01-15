@@ -24,12 +24,22 @@ export default function LoginPage() {
     setError("");
 
     try {
+      // Trim password before sending
+      const trimmedPassword = password.trim();
+      
+      if (!trimmedPassword) {
+        setError("Please enter an access code");
+        setIsLoading(false);
+        return;
+      }
+
       const response = await fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ password }),
+        credentials: "include", // Include cookies in request
+        body: JSON.stringify({ password: trimmedPassword }),
       });
 
       const data = await response.json();
@@ -40,9 +50,13 @@ export default function LoginPage() {
         return;
       }
 
-      // Success - redirect to dashboard
-      window.location.href = "/dashboard";
+      // Success - wait a moment for cookie to be set, then redirect
+      console.log("✅ Login successful, redirecting to dashboard...");
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 100);
     } catch (err) {
+      console.error("Login error:", err);
       setError("An error occurred. Please try again.");
       setIsLoading(false);
     }
