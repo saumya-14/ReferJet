@@ -12,6 +12,10 @@ import {
   XCircle,
   Loader2,
   Inbox,
+  Search,
+  Bell,
+  ChevronRight,
+  MoreHorizontal,
 } from "lucide-react";
 
 // Types
@@ -60,6 +64,14 @@ const dummyHistory: EmailHistory[] = [
     status: "sent",
     date: "2024-01-12",
   },
+  {
+    id: "5",
+    to: "alex.wong@finance.net",
+    company: "Finance Net",
+    subject: "Q1 Review Meeting",
+    status: "sent",
+    date: "2024-01-10",
+  },
 ];
 
 export default function Dashboard() {
@@ -67,7 +79,8 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("send");
   const [isLoading, setIsLoading] = useState(false);
-  const [history] = useState<EmailHistory[]>(dummyHistory);
+  const [history, setHistory] = useState<EmailHistory[]>(dummyHistory);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -83,11 +96,8 @@ export default function Dashboard() {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/logout", { method: "POST" });
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    // Simulate logout delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
     router.push("/");
   };
 
@@ -96,7 +106,18 @@ export default function Dashboard() {
     setIsLoading(true);
 
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // Add to history (simulated)
+    const newEmail: EmailHistory = {
+      id: Math.random().toString(36).substr(2, 9),
+      to: formData.recipientEmail,
+      company: formData.companyName,
+      subject: formData.subject,
+      status: "sent",
+      date: new Date().toISOString().split("T")[0],
+    };
+    setHistory([newEmail, ...history]);
 
     // Reset form
     setFormData({
@@ -108,7 +129,8 @@ export default function Dashboard() {
     });
 
     setIsLoading(false);
-    // In a real app, you'd show a success toast here
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   const handleInputChange = (
@@ -125,362 +147,414 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+    <div className="flex h-screen w-full overflow-hidden bg-[#F8FAFC] font-sans text-slate-900">
+      {/* Background Gradients */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -left-[10%] -top-[10%] h-[50%] w-[50%] rounded-full bg-indigo-100/40 blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] h-[50%] w-[50%] rounded-full bg-blue-100/40 blur-[120px]" />
+      </div>
+
       {/* Left Sidebar */}
       <motion.aside
-        initial={{ x: -100, opacity: 0 }}
+        initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="flex w-64 flex-col border-r border-slate-200/80 bg-white/70 backdrop-blur-xl shadow-lg"
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="relative z-20 flex w-72 flex-col border-r border-slate-200/60 bg-white/80 backdrop-blur-xl"
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 border-b border-slate-200/80 p-6">
-          <motion.div
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30"
-          >
-            <Mail className="h-5 w-5 text-white" />
-          </motion.div>
-          <div>
-            <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              ReachOut
-            </h1>
-            <p className="text-xs text-slate-500">Email Sender</p>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            <motion.button
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab("send")}
-              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                activeTab === "send"
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30"
-                  : "text-slate-600 hover:bg-slate-100/80"
-              }`}
-            >
-              <Send className="h-4 w-4" />
-              Send Email
-            </motion.button>
-
-            <motion.button
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab("history")}
-              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                activeTab === "history"
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30"
-                  : "text-slate-600 hover:bg-slate-100/80"
-              }`}
-            >
-              <History className="h-4 w-4" />
-              History
-            </motion.button>
-          </div>
-        </nav>
-
-        {/* Logout Button */}
-        <div className="border-t border-slate-200/80 p-4">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:shadow-md"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </motion.button>
-        </div>
-      </motion.aside>
-
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top Header */}
-        <motion.header
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="border-b border-slate-200/80 bg-white/40 backdrop-blur-xl shadow-sm"
-        >
-          <div className="flex h-16 items-center justify-between px-8">
+        <div className="flex h-20 items-center px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
+              <Mail className="h-5 w-5" />
+            </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-800">
-                {activeTab === "send" ? "Send Email" : "Email History"}
-              </h2>
-              <p className="text-xs text-slate-500">
-                {activeTab === "send"
-                  ? "Compose and send personalized emails"
-                  : "View your email sending history"}
+              <h1 className="font-bold text-slate-900">ReachOut</h1>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                Workspace
               </p>
             </div>
           </div>
-        </motion.header>
+        </div>
 
-        {/* Content */}
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1 px-4 py-6">
+          <p className="mb-4 px-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Main Menu
+          </p>
+          <NavItem
+            active={activeTab === "send"}
+            onClick={() => setActiveTab("send")}
+            icon={<Send className="h-4 w-4" />}
+            label="Send Email"
+          />
+          <NavItem
+            active={activeTab === "history"}
+            onClick={() => setActiveTab("history")}
+            icon={<History className="h-4 w-4" />}
+            label="History"
+          />
+        </nav>
+
+        {/* User Profile / Logout */}
+        <div className="border-t border-slate-200/60 p-4">
+          <button
+            onClick={handleLogout}
+            className="group flex w-full items-center gap-3 rounded-xl border border-transparent p-3 text-left transition-all hover:border-slate-200 hover:bg-white hover:shadow-sm"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+              <span className="text-xs font-bold">JD</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate text-sm font-medium text-slate-700 group-hover:text-slate-900">
+                John Doe
+              </p>
+              <p className="truncate text-xs text-slate-500">
+                john@example.com
+              </p>
+            </div>
+            <LogOut className="h-4 w-4 text-slate-400 transition-colors group-hover:text-slate-600" />
+          </button>
+        </div>
+      </motion.aside>
+
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-1 flex-col overflow-hidden">
+        {/* Header */}
+        <header className="flex h-20 items-center justify-between border-b border-slate-200/60 bg-white/50 px-8 backdrop-blur-md">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-semibold text-slate-800">
+              {activeTab === "send" ? "Compose Message" : "Email History"}
+            </h2>
+            <div className="h-4 w-[1px] bg-slate-200" />
+            <span className="text-sm text-slate-500">
+              {activeTab === "send"
+                ? "Create a new outreach campaign"
+                : "Track your sent messages"}
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700">
+              <Search className="h-4 w-4" />
+            </button>
+            <button className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700">
+              <Bell className="h-4 w-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-8">
-          <AnimatePresence mode="wait">
-            {activeTab === "send" ? (
-              <motion.div
-                key="send"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="mx-auto max-w-2xl"
-              >
-                <form
-                  onSubmit={handleSubmit}
-                  className="rounded-2xl border border-slate-200/80 bg-white/70 backdrop-blur-xl p-8 shadow-xl shadow-slate-200/50"
+          <div className="mx-auto max-w-5xl">
+            <AnimatePresence mode="wait">
+              {activeTab === "send" ? (
+                <motion.div
+                  key="send"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <div className="space-y-6">
-                    {/* Recipient Name */}
-                    <div>
-                      <label
-                        htmlFor="recipientName"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Recipient Name
-                      </label>
-                      <input
-                        type="text"
-                        id="recipientName"
-                        name="recipientName"
-                        value={formData.recipientName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        placeholder="John Doe"
-                      />
+                  <div className="grid gap-8 lg:grid-cols-3">
+                    {/* Form Section */}
+                    <div className="lg:col-span-2">
+                      <div className="rounded-2xl border border-slate-200/60 bg-white p-8 shadow-sm">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                          <div className="grid gap-6 md:grid-cols-2">
+                            <InputField
+                              label="Recipient Name"
+                              id="recipientName"
+                              placeholder="e.g. Sarah Connor"
+                              value={formData.recipientName}
+                              onChange={handleInputChange}
+                            />
+                            <InputField
+                              label="Recipient Email"
+                              id="recipientEmail"
+                              type="email"
+                              placeholder="sarah@skynet.com"
+                              value={formData.recipientEmail}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                          <InputField
+                            label="Company Name"
+                            id="companyName"
+                            placeholder="e.g. Cyberdyne Systems"
+                            value={formData.companyName}
+                            onChange={handleInputChange}
+                          />
+                          <InputField
+                            label="Subject"
+                            id="subject"
+                            placeholder="Regarding your recent inquiry..."
+                            value={formData.subject}
+                            onChange={handleInputChange}
+                          />
+                          <div>
+                            <label
+                              htmlFor="messageBody"
+                              className="mb-2 block text-sm font-medium text-slate-700"
+                            >
+                              Message
+                            </label>
+                            <textarea
+                              id="messageBody"
+                              name="messageBody"
+                              rows={8}
+                              required
+                              value={formData.messageBody}
+                              onChange={handleInputChange}
+                              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                              placeholder="Type your message here..."
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-end gap-4 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({
+                                  recipientName: "",
+                                  recipientEmail: "",
+                                  companyName: "",
+                                  subject: "",
+                                  messageBody: "",
+                                });
+                              }}
+                              className="rounded-xl px-6 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={isLoading}
+                              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:shadow-indigo-600/30 active:scale-95 disabled:opacity-70"
+                            >
+                              {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Send className="h-4 w-4" />
+                              )}
+                              {isLoading ? "Sending..." : "Send Email"}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
                     </div>
 
-                    {/* Recipient Email */}
-                    <div>
-                      <label
-                        htmlFor="recipientEmail"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Recipient Email
-                      </label>
-                      <input
-                        type="email"
-                        id="recipientEmail"
-                        name="recipientEmail"
-                        value={formData.recipientEmail}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        placeholder="john.doe@example.com"
-                      />
-                    </div>
+                    {/* Tips / Info Section */}
+                    <div className="lg:col-span-1">
+                      <div className="space-y-6">
+                        <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-6">
+                          <h3 className="mb-2 font-semibold text-indigo-900">
+                            Pro Tips
+                          </h3>
+                          <ul className="space-y-3 text-sm text-indigo-800/80">
+                            <li className="flex items-start gap-2">
+                              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+                              <span>Keep your subject lines under 50 characters for better open rates.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+                              <span>Personalize the first sentence to grab attention immediately.</span>
+                            </li>
+                          </ul>
+                        </div>
 
-                    {/* Company Name */}
-                    <div>
-                      <label
-                        htmlFor="companyName"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Company Name
-                      </label>
-                      <input
-                        type="text"
-                        id="companyName"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        placeholder="Acme Corporation"
-                      />
+                        {showSuccess && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="rounded-2xl border border-green-100 bg-green-50 p-6"
+                          >
+                            <div className="flex items-center gap-3 text-green-700">
+                              <CheckCircle2 className="h-5 w-5" />
+                              <span className="font-semibold">Email Sent!</span>
+                            </div>
+                            <p className="mt-2 text-sm text-green-600">
+                              Your message has been successfully queued for delivery.
+                            </p>
+                          </motion.div>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Subject */}
-                    <div>
-                      <label
-                        htmlFor="subject"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Subject
-                      </label>
-                      <input
-                        type="text"
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        placeholder="Partnership Opportunity"
-                      />
-                    </div>
-
-                    {/* Message Body */}
-                    <div>
-                      <label
-                        htmlFor="messageBody"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Message Body
-                      </label>
-                      <textarea
-                        id="messageBody"
-                        name="messageBody"
-                        value={formData.messageBody}
-                        onChange={handleInputChange}
-                        required
-                        rows={8}
-                        className="w-full rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
-                        placeholder="Write your message here..."
-                      />
-                    </div>
-
-                    {/* Submit Button */}
-                    <motion.button
-                      type="submit"
-                      disabled={isLoading}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-xl hover:shadow-indigo-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Sending...
-                        </span>
-                      ) : (
-                        <span className="flex items-center justify-center gap-2">
-                          <Send className="h-4 w-4" />
-                          Send Email
-                        </span>
-                      )}
-                    </motion.button>
                   </div>
-                </form>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="history"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="mx-auto max-w-6xl"
-              >
-                {history.length === 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-white/70 backdrop-blur-xl p-16 shadow-xl shadow-slate-200/50"
-                  >
-                    <motion.div
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="mb-4 rounded-full bg-slate-100 p-6"
-                    >
-                      <Inbox className="h-12 w-12 text-slate-400" />
-                    </motion.div>
-                    <h3 className="mb-2 text-lg font-semibold text-slate-800">
-                      No emails sent yet
-                    </h3>
-                    <p className="text-sm text-slate-500">
-                      Your email history will appear here once you start sending
-                      emails.
-                    </p>
-                  </motion.div>
-                ) : (
-                  <div className="rounded-2xl border border-slate-200/80 bg-white/70 backdrop-blur-xl shadow-xl shadow-slate-200/50 overflow-hidden">
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="history"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-slate-200/80 bg-slate-50/50">
-                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                              To
+                          <tr className="border-b border-slate-100 bg-slate-50/50">
+                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Recipient
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               Company
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               Subject
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               Status
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               Date
+                            </th>
+                            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Actions
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200/80">
+                        <tbody className="divide-y divide-slate-100">
                           {history.map((item, index) => (
                             <motion.tr
                               key={item.id}
-                              initial={{ opacity: 0, x: -20 }}
+                              initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.05 }}
-                              whileHover={{
-                                backgroundColor: "rgba(99, 102, 241, 0.05)",
-                              }}
-                              className="cursor-pointer transition-colors"
+                              className="group transition-colors hover:bg-slate-50/80"
                             >
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-slate-900">
-                                  {item.to}
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
+                                    {item.to.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="text-sm font-medium text-slate-900">
+                                    {item.to}
+                                  </span>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-slate-600">
-                                  {item.company}
-                                </div>
+                              <td className="px-6 py-4 text-sm text-slate-600">
+                                {item.company}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-600">
+                                {item.subject}
                               </td>
                               <td className="px-6 py-4">
-                                <div className="text-sm text-slate-900 max-w-md truncate">
-                                  {item.subject}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <motion.span
-                                  whileHover={{ scale: 1.05 }}
-                                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-                                    item.status === "sent"
-                                      ? "bg-green-100 text-green-700"
+                                <span
+                                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${item.status === "sent"
+                                      ? "bg-emerald-100 text-emerald-700"
                                       : "bg-red-100 text-red-700"
-                                  }`}
+                                    }`}
                                 >
-                                  {item.status === "sent" ? (
-                                    <CheckCircle2 className="h-3 w-3" />
-                                  ) : (
-                                    <XCircle className="h-3 w-3" />
-                                  )}
+                                  <span className={`h-1.5 w-1.5 rounded-full ${item.status === "sent" ? "bg-emerald-500" : "bg-red-500"
+                                    }`} />
                                   {item.status === "sent" ? "Sent" : "Failed"}
-                                </motion.span>
+                                </span>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-slate-500">
-                                  {new Date(item.date).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      year: "numeric",
-                                      month: "short",
-                                      day: "numeric",
-                                    }
-                                  )}
-                                </div>
+                              <td className="px-6 py-4 text-sm text-slate-500">
+                                {item.date}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button className="rounded-lg p-2 text-slate-400 opacity-0 transition-all hover:bg-white hover:text-slate-600 hover:shadow-sm group-hover:opacity-100">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </button>
                               </td>
                             </motion.tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
+                    {history.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-20">
+                        <div className="mb-4 rounded-full bg-slate-50 p-4">
+                          <Inbox className="h-8 w-8 text-slate-300" />
+                        </div>
+                        <p className="text-slate-500">No emails sent yet</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </main>
       </div>
+    </div>
+  );
+}
+
+// Helper Components
+
+function NavItem({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`group flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all ${active
+          ? "bg-indigo-50 text-indigo-600"
+          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+        }`}
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className={`transition-colors ${active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"
+            }`}
+        >
+          {icon}
+        </span>
+        {label}
+      </div>
+      {active && (
+        <motion.div
+          layoutId="activeNav"
+          className="h-1.5 w-1.5 rounded-full bg-indigo-600"
+        />
+      )}
+    </button>
+  );
+}
+
+function InputField({
+  label,
+  id,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  id: string;
+  type?: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-2 block text-sm font-medium text-slate-700"
+      >
+        {label}
+      </label>
+      <input
+        type={type}
+        id={id}
+        name={id}
+        required
+        value={value}
+        onChange={onChange}
+        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+        placeholder={placeholder}
+      />
     </div>
   );
 }
