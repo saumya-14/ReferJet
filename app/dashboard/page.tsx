@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -9,12 +9,10 @@ import {
   Send,
   LogOut,
   CheckCircle2,
-  XCircle,
   Loader2,
   Inbox,
   Search,
   Bell,
-  ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
 
@@ -76,7 +74,6 @@ const dummyHistory: EmailHistory[] = [
 
 export default function Dashboard() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("send");
   const [isLoading, setIsLoading] = useState(false);
   const [history, setHistory] = useState<EmailHistory[]>(dummyHistory);
@@ -90,10 +87,6 @@ export default function Dashboard() {
     subject: "",
     messageBody: "",
   });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleLogout = async () => {
     // Simulate logout delay
@@ -141,10 +134,6 @@ export default function Dashboard() {
       [e.target.name]: e.target.value,
     });
   };
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#F8FAFC] font-sans text-slate-900">
@@ -441,8 +430,8 @@ export default function Dashboard() {
                               <td className="px-6 py-4">
                                 <span
                                   className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${item.status === "sent"
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-red-100 text-red-700"
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-red-100 text-red-700"
                                     }`}
                                 >
                                   <span className={`h-1.5 w-1.5 rounded-full ${item.status === "sent" ? "bg-emerald-500" : "bg-red-500"
@@ -499,8 +488,8 @@ function NavItem({
     <button
       onClick={onClick}
       className={`group flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all ${active
-          ? "bg-indigo-50 text-indigo-600"
-          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+        ? "bg-indigo-50 text-indigo-600"
+        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
         }`}
     >
       <div className="flex items-center gap-3">

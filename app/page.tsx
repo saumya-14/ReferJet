@@ -9,6 +9,7 @@ export default function RestrictedAccess() {
 
   useEffect(() => {
     setMounted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGoBack = () => {
@@ -39,9 +40,8 @@ export default function RestrictedAccess() {
 
       {/* Card */}
       <div
-        className={`relative z-10 w-full max-w-xl rounded-3xl border border-gray-200 bg-white/80 p-10 backdrop-blur-xl shadow-2xl transition-all duration-700 ${
-          mounted ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-95"
-        }`}
+        className={`relative z-10 w-full max-w-xl rounded-3xl border border-gray-200 bg-white/80 p-10 backdrop-blur-xl shadow-2xl transition-all duration-700 ${mounted ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-95"
+          }`}
       >
         {/* Icon */}
         <div className="mb-8 flex justify-center">
