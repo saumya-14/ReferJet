@@ -1,160 +1,143 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Lock, ArrowLeft, Eye, Smile, X, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Lock, Siren, Skull, Baby } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function RestrictedAccess() {
-  const [mounted, setMounted] = useState(false);
-  const [showDialog, setShowDialog] = useState(false);
+  const router = useRouter();
+  const [clickCount, setClickCount] = useState(0);
+  const [message, setMessage] = useState("Nothing to see here...");
 
-  useEffect(() => {
-    setMounted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Funny messages sequence
+  const messages = [
+    "Nothing to see here...",
+    "Seriously, go away.",
+    "This is a private property.",
+    "I'm calling the internet police 👮‍♂️",
+    "Okay, you're persistent.",
+    "Fine, have a cookie 🍪",
+    "Wait, I ate the cookie.",
+    "System overload initiating...",
+  ];
 
-  const handleGoBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = "/";
-    }
+  const handleInteraction = () => {
+    setClickCount((prev) => prev + 1);
+    const nextIndex = (clickCount + 1) % messages.length;
+    setMessage(messages[nextIndex]);
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-pink-50 p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#F8FAFC] font-sans text-slate-900 selection:bg-rose-500/20">
 
-      {/* Floating emojis */}
-      {["👀", "🔒", "😂", "🚫", "🫣"].map((e, i) => (
-        <div
-          key={i}
-          className="absolute text-2xl opacity-30 animate-float"
-          style={{
-            left: `${10 + i * 18}%`,
-            top: `${15 + (i % 3) * 20}%`,
-            animationDuration: `${12 + i * 4}s`,
-          }}
-        >
-          {e}
-        </div>
-      ))}
-
-      {/* Card */}
-      <div
-        className={`relative z-10 w-full max-w-xl rounded-3xl border border-gray-200 bg-white/80 p-10 backdrop-blur-xl shadow-2xl transition-all duration-700 ${mounted ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-95"
-          }`}
-      >
-        {/* Icon */}
-        <div className="mb-8 flex justify-center">
-          <div className="relative animate-[wiggle_2s_ease-in-out_infinite]">
-            <div className="absolute inset-0 rounded-full bg-pink-200 blur-2xl opacity-40" />
-            <div className="relative flex items-center justify-center rounded-full bg-gradient-to-br from-white to-gray-100 p-6 shadow-xl">
-              <Lock className="h-14 w-14 text-gray-800" />
-              <Smile className="absolute -bottom-1 -right-1 h-6 w-6 text-pink-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Headline */}
-        <h1 className="mb-3 text-center text-2xl font-medium tracking-tight text-gray-900 sm:text-5xl">
-          Oops! You weren’t supposed to be here 😏
-        </h1>
-
-        <p className="mb-6 text-center text-xl text-gray-600">
-          This page is more private than my Chrome history.
-        </p>
-
-        {/* Message */}
-        <div className="mb-8 space-y-3">
-          <p className="text-center text-gray-500">
-            🚨 Congratulations! You found a page that does absolutely nothing for you.
-          </p>
-          <p className="text-center text-gray-400 text-sm">
-            This is a personal project. If you’re here, either you’re very curious… or very lost.
-          </p>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <button
-            onClick={handleGoBack}
-            className="rounded-xl border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 active:scale-95"
-          >
-            <span className="flex items-center justify-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Abort Mission 🏃‍♂️
-            </span>
-          </button>
-
-          <button
-            onClick={() => setShowDialog(true)}
-            className="rounded-xl bg-gradient-to-r from-gray-900 to-gray-700 px-6 py-3 font-medium text-white shadow-lg transition hover:opacity-90 active:scale-95"
-          >
-            <span className="flex items-center justify-center gap-2">
-              <Eye className="h-4 w-4" />
-              I Was Just Looking 👀
-            </span>
-          </button>
-        </div>
-
-        {/* Tiny joke */}
-        <p className="mt-8 text-center text-xs text-gray-400">
-          This button does not hack NASA. We tried.
-        </p>
+      {/* Background Gradients */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-50">
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -left-[10%] -top-[10%] h-[60%] w-[60%] rounded-full bg-rose-100/40 blur-[100px]"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], x: [0, -50, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-[10%] -right-[10%] h-[60%] w-[60%] rounded-full bg-orange-100/40 blur-[100px]"
+        />
       </div>
 
-      {/* Modal */}
-      {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowDialog(false)}>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      <div className="relative z-10 mx-auto w-full max-w-lg px-4 text-center">
 
-          <div
-            className="relative z-10 w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowDialog(false)}
-              className="absolute right-4 top-4 rounded-lg p-1 hover:bg-gray-100"
+        {/* Animated Icon Container */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", bounce: 0.5 }}
+          className="group relative mx-auto mb-8 flex h-32 w-32 cursor-pointer items-center justify-center rounded-3xl bg-white shadow-2xl shadow-rose-500/10 transition-transform active:scale-95"
+          onClick={handleInteraction}
+        >
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-rose-500 to-orange-500 opacity-0 transition-opacity group-hover:opacity-10" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={clickCount}
+              initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              exit={{ scale: 1.5, opacity: 0, rotate: 45 }}
+              transition={{ type: "spring" }}
             >
-              <X className="h-5 w-5" />
-            </button>
+              {clickCount < 3 ? (
+                <Lock className="h-12 w-12 text-slate-900" />
+              ) : clickCount < 6 ? (
+                <Siren className="h-12 w-12 text-rose-500" />
+              ) : (
+                <Skull className="h-12 w-12 text-slate-900" />
+              )}
+            </motion.div>
+          </AnimatePresence>
 
-            <div className="mb-6 flex justify-center">
-              <Sparkles className="h-12 w-12 text-pink-500" />
-            </div>
-
-            <h2 className="mb-3 text-center text-2xl font-bold">
-              Curiosity Level: 100% 😎
-            </h2>
-
-            <p className="mb-6 text-center text-gray-600">
-              I respect the curiosity, but this project is still in its introvert era.
-            </p>
-
-            <button
-              onClick={() => setShowDialog(false)}
-              className="w-full rounded-xl bg-gray-900 px-6 py-3 text-white font-medium hover:bg-gray-800"
-            >
-              Okay okay, I’m leaving 🚶‍♂️
-            </button>
+          {/* Badge */}
+          <div className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white shadow-lg">
+            {clickCount > 0 ? clickCount : "?"}
           </div>
-        </div>
-      )}
+        </motion.div>
 
-      {/* Animations */}
-      <style jsx>{`
-        @keyframes wiggle {
-          0%, 100% { transform: rotate(-3deg); }
-          50% { transform: rotate(3deg); }
-        }
-        @keyframes float {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
-          100% { transform: translateY(0); }
-        }
-        .animate-float {
-          animation: float linear infinite;
-        }
-      `}</style>
+        {/* Text Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h1 className="mb-4 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+            Whoops. <br />
+            <span className="bg-gradient-to-r from-rose-500 to-orange-600 bg-clip-text text-transparent">
+              Personal Use Only
+            </span>
+          </h1>
+
+          <motion.p
+            key={message}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-8 text-lg font-medium text-slate-500 min-h-[2rem]"
+          >
+            {message}
+          </motion.p>
+        </motion.div>
+
+        {/* Buttons */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="flex flex-col items-center justify-center gap-4 sm:flex-row"
+        >
+          <button
+            onClick={() => router.push('/access')}
+            className="group relative flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+          >
+            Login Anyway
+            <span className="opacity-0 transition-opacity group-hover:opacity-100">🔐</span>
+          </button>
+          <a
+            href="https://youtube.com/watch?v=dQw4w9WgXcQ"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+          >
+            Complain to Management
+            <Baby className="h-4 w-4" />
+          </a>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="mt-12 text-xs font-medium uppercase tracking-widest text-slate-400"
+        >
+          Secure • Private • Funny?
+        </motion.div>
+
+      </div>
     </div>
   );
 }
