@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Siren, Skull, Baby } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 export default function RestrictedAccess() {
-  const router = useRouter();
   const [clickCount, setClickCount] = useState(0);
   const [message, setMessage] = useState("Nothing to see here...");
 
@@ -110,13 +108,15 @@ export default function RestrictedAccess() {
           transition={{ delay: 0.4 }}
           className="flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
-          <button
-            onClick={() => router.push('/access')}
+          <a
+            href="https://youtube.com/watch?v=dQw4w9WgXcQ"
+            target="_blank"
+            rel="noreferrer"
             className="group relative flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
           >
             Login Anyway
             <span className="opacity-0 transition-opacity group-hover:opacity-100">🔐</span>
-          </button>
+          </a>
           <a
             href="https://youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
