@@ -137,24 +137,55 @@ export default function Dashboard() {
 
   const handleSendCampaign = async (campaign: Campaign) => {
     setIsLoading(true);
-    // Simulate API
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    try {
+      // Call the API to send emails
+      const response = await fetch('/api/send-campaign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipients: campaign.recipients,
+          template: campaign.template,
+        }),
+      });
 
-    // Update campaign status
-    const sentCampaign = { ...campaign, status: "sent" as const };
-    handleSaveCampaign(sentCampaign);
+      const result = await response.json();
 
-    // Add to History
-    const newHistoryItems = campaign.recipients.map(r => ({
-      id: Math.random().toString(36).substr(2, 9),
-      campaignName: campaign.name,
-      recipientEmail: r.email,
-      status: "sent" as const,
-      date: new Date().toISOString().split("T")[0]
-    }));
-    setHistory(prev => [...newHistoryItems, ...prev]);
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send campaign');
+      }
 
-    setIsLoading(false);
+      // Update campaign status
+      const sentCampaign = { ...campaign, status: "sent" as const };
+      handleSaveCampaign(sentCampaign);
+
+      // Add to History - only successful sends
+      const newHistoryItems = result.results
+        .filter((r: any) => r.status === "sent")
+        .map((r: any) => ({
+          id: Math.random().toString(36).substr(2, 9),
+          campaignName: campaign.name,
+          recipientEmail: r.email,
+          status: "sent" as const,
+          date: new Date().toISOString().split("T")[0]
+        }));
+      
+      setHistory(prev => [...newHistoryItems, ...prev]);
+
+      // Show success message
+      if (result.failed > 0) {
+        alert(`Campaign sent! ${result.sent} emails sent successfully, ${result.failed} failed.`);
+      } else {
+        alert(`Campaign sent successfully! ${result.sent} emails delivered.`);
+      }
+    } catch (error: any) {
+      console.error('Error sending campaign:', error);
+      alert(`Failed to send campaign: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteCampaign = (id: string, e: React.MouseEvent) => {
@@ -212,6 +243,8 @@ export default function Dashboard() {
                   campaigns={campaigns}
                   onEdit={handleEditCampaign}
                   onDelete={handleDeleteCampaign}
+                  onSend={handleSendCampaign}
+                  isLoading={isLoading}
                 />
               )}
 
@@ -325,7 +358,7 @@ function Header({ title, currentView, onCreateClick }: { title: string, currentV
 
 // --- View: Campaigns List ---
 
-function CampaignsList({ campaigns, onEdit, onDelete }: { campaigns: Campaign[], onEdit: (c: Campaign) => void, onDelete: (id: string, e: React.MouseEvent) => void }) {
+function CampaignsList({ campaigns, onEdit, onDelete, onSend, isLoading }: { campaigns: Campaign[], onEdit: (c: Campaign) => void, onDelete: (id: string, e: React.MouseEvent) => void, onSend: (c: Campaign) => void, isLoading: boolean }) {
   if (campaigns.length === 0) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-32 text-center">
@@ -356,12 +389,29 @@ function CampaignsList({ campaigns, onEdit, onDelete }: { campaigns: Campaign[],
               <span className={`h-1.5 w-1.5 rounded-full ${campaign.status === 'sent' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               {campaign.status === 'sent' ? 'Sent' : 'Draft'}
             </div>
-            <button
-              onClick={(e) => onDelete(campaign.id, e)}
-              className="rounded-lg p-2 text-slate-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1 opacity-0 transition-all group-hover:opacity-100">
+              {campaign.status === 'sent' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Resend campaign "${campaign.name}" to all recipients?`)) {
+                      onSend(campaign);
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="rounded-lg p-2 text-slate-300 transition-all hover:bg-indigo-50 hover:text-indigo-500 disabled:opacity-50"
+                  title="Resend Campaign"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                onClick={(e) => onDelete(campaign.id, e)}
+                className="rounded-lg p-2 text-slate-300 transition-all hover:bg-red-50 hover:text-red-500"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           <h3 className="mb-1 text-lg font-semibold text-slate-900">{campaign.name}</h3>
